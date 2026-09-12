@@ -3,7 +3,6 @@ const pino = require("pino");
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-const ytdlp = require("yt-dlp-exec");
 const config = require("./config");
 
 const app = express();
@@ -56,7 +55,6 @@ app.get("/", (req, res) => {
         <div style="font-size:11px; color:#cbd5e1; line-height:1.6; max-height:160px; overflow-y:auto; padding-right:5px;">
           <p>🤖 <b>.bot / .mchlern</b> - Munculkan info AI & foto</p>
           <p>🎮 <b>.tebakangka / .suit</b> - Mini games interaktif</p>
-          <p>🎵 <b>.play [judul]</b> - Auto download musik YouTube</p>
           <p>🛡️ <b>.antilinkgrup on/off</b> - Blokir link grup WhatsApp</p>
           <p>🛡️ <b>.antilinksaluran on/off</b> - Blokir link saluran</p>
           <p>🤬 <b>.antitoxic on/off</b> - Sensor kata kasar otomatis</p>
@@ -177,7 +175,6 @@ function startBotInstance(sock, sessionName) {
         `🏓 .ping - Cek kecepatan bot\n` +
         `🎮 .tebakangka - Main tebak angka\n` +
         `✂️ .suit [batu/gunting/kertas] - Adu suit\n` +
-        `🎵 .play [judul] - Auto download YouTube\n` +
         `🛡️ .antilinkgrup [on/off]\n` +
         `🛡️ .antilinksaluran [on/off]\n` +
         `🤬 .antitoxic [on/off]\n` +
@@ -200,19 +197,6 @@ function startBotInstance(sock, sessionName) {
       const botChoice = choices[Math.floor(Math.random() * choices.length)];
       let resText = userChoice === botChoice ? "Seri!" : ((userChoice === "batu" && botChoice === "gunting") || (userChoice === "gunting" && botChoice === "kertas") || (userChoice === "kertas" && botChoice === "batu")) ? "Kamu MENANG! 🎉" : "Kamu KALAH! 🤖";
       await sock.sendMessage(sender, { text: `${resText}\nBot memilih: *${botChoice}*` }, { quoted: m });
-    } else if (cmd === "play") {
-      if (!q) return await sock.sendMessage(sender, { text: "Masukkan judul lagu!\nContoh: .play dj remix terbaru" }, { quoted: m });
-      await sock.sendMessage(sender, { text: `🔍 Sedang mendownload audio untuk: *${q}*...` }, { quoted: m });
-      try {
-        const out = path.join(__dirname, `${Date.now()}.mp3`);
-        await ytdlp(`ytsearch1:${q}`, { extractAudio: true, audioFormat: 'mp3', output: out, noCheckCertificates: true });
-        if (fs.existsSync(out)) {
-          await sock.sendMessage(sender, { audio: fs.readFileSync(out), mimetype: 'audio/mp4' }, { quoted: m });
-          fs.unlinkSync(out);
-        }
-      } catch (e) {
-        await sock.sendMessage(sender, { text: "Gagal mendownload audio dari YouTube." }, { quoted: m });
-      }
     } else if (cmd === "antilinkgrup") {
       if (!isGroup) return;
       settings.antilinkgrup = args[0]?.toLowerCase() === "on";
